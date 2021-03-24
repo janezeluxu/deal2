@@ -1,0 +1,3 @@
+/Users/zeluxu/Documents/phd/deal2/github/dynamictau/CMakeFiles/rebuild_cache.dir
+/Users/zeluxu/Documents/phd/deal2/github/dynamictau/CMakeFiles/edit_cache.dir
+/Users/zeluxu/Documents/phd/deal2/github/dynamictau/CMakeFiles/ns.dir
