@@ -1,0 +1,20 @@
+Re =100;
+maxNewtonIter =20;
+tolerance =1e-8;
+max_cycle =5;
+vtkfilename =./output/paraview/lidcavityRe100-
+velocity_solname =./output/solution/lidcavityRe100un-
+pressure_solname =./output/solution/lidcavityRe100pn-
+outputmeshfilename =./output/mesh/lidcavity-100-
+meshfile =./mesh/lidCavity001.msh
+KellyError =1;
+nBC_com =4;
+component_mask =3;3;4;3;
+component_geotag =0;1;2;3;
+BC_u =0;1;2;3;
+BCval_u =1;0;0;0;
+BC_v =0;1;2;3;
+BCval_v =0;0;0;0;
+BC_p =2;
+BCval_p =0;
+

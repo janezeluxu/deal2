@@ -1,0 +1,20 @@
+Re =50;
+maxNewtonIter =20;
+tolerance =1e-8;
+max_cycle =5;
+vtkfilename =./output/paraview/cylinderRe50-
+velocity_solname =./output/solution/cylinderRe50un-
+pressure_solname =./output/solution/cylinderRe50pn-
+outputmeshfilename =./output/mesh/cylinder-50-
+meshfile =./mesh/cylinder.msh
+KellyError =0;
+nBC_com =4;
+component_mask =1;2;3;3;
+component_geotag =0;1;2;3;
+BC_u =2;3;
+BCval_u =1;0
+BC_v =0;2;3
+BCval_v =0;0;0;
+BC_p =1;
+BCval_p =0;
+

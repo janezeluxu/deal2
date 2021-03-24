@@ -1,0 +1,11 @@
+/Users/zeluxu/Documents/phd/deal2/github/static-parallel/CMakeFiles/rebuild_cache.dir
+/Users/zeluxu/Documents/phd/deal2/github/static-parallel/CMakeFiles/edit_cache.dir
+/Users/zeluxu/Documents/phd/deal2/github/static-parallel/CMakeFiles/info.dir
+/Users/zeluxu/Documents/phd/deal2/github/static-parallel/CMakeFiles/strip_comments.dir
+/Users/zeluxu/Documents/phd/deal2/github/static-parallel/CMakeFiles/distclean.dir
+/Users/zeluxu/Documents/phd/deal2/github/static-parallel/CMakeFiles/runclean.dir
+/Users/zeluxu/Documents/phd/deal2/github/static-parallel/CMakeFiles/run.dir
+/Users/zeluxu/Documents/phd/deal2/github/static-parallel/CMakeFiles/release.dir
+/Users/zeluxu/Documents/phd/deal2/github/static-parallel/CMakeFiles/sign.dir
+/Users/zeluxu/Documents/phd/deal2/github/static-parallel/CMakeFiles/debug.dir
+/Users/zeluxu/Documents/phd/deal2/github/static-parallel/CMakeFiles/static-parallel.dir

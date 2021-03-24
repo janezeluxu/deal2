@@ -1,0 +1,20 @@
+Re =100;
+maxNewtonIter =20;
+tolerance =1e-8;
+max_cycle =1;
+vtkfilename =./output/paraview/backstepRe100-
+velocity_solname =./output/solution/backstepRe100un-
+pressure_solname =./output/solution/backstepRe100pn-
+outputmeshfilename =./output/mesh/backstep-100-
+meshfile =./mesh/backstep.msh
+KellyError =1;
+nBC_com =3;
+component_mask =3;3;2;
+component_geotag =0;1;2;
+BC_u =0;1;
+BCval_u =0;10;
+BC_v =0;1;
+BCval_v =0;0;
+BC_p =2;
+BCval_p =0;
+
