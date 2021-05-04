@@ -39,17 +39,17 @@ namespace incompressible
     int maxNewtonIter = 10;
     double tolerance = 1e-6;
     
-    int degree = 3;
+    int degree = 1;
     int mapdegree = 1;
-    int meshRefineLevel = 0;
-    unsigned int nstp = 1600;
-    unsigned int num_start = 3192;
+    int meshRefineLevel = 2;
+    unsigned int nstp = 820;
+    unsigned int num_start = 0;
     
     //dynamic info
     int surfaceTag = 1;
     //int dynamicBC = 50;
     
-    bool dynamicFlag = true;
+    bool dynamicFlag = false;
     int dynamicBC = 50;
     double c1_start = 0.3;
     int stage1_outter = 1;

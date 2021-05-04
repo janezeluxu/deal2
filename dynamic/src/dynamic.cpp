@@ -2063,8 +2063,8 @@ namespace incompressible
     {
         // use Eigen to solve dense matrix
         std::cout << "here 1.4.3.1 " <<mSize<<std::endl;
-        Eigen::MatrixXd leftHS(mSize,mSize);
-        Eigen::VectorXd rightHS(mSize);
+        Eigen::MatrixXf leftHS(mSize,mSize);
+        Eigen::VectorXf rightHS(mSize);
         std::cout << "here 1.4.3.1 " <<std::endl;
         for (int i = 0; i<mSize; i++)
         {
@@ -2075,7 +2075,7 @@ namespace incompressible
             }
         }
         std::cout << "here 1.4.3.2 " <<std::endl;
-        Eigen::Vector3f x = leftHS.colPivHouseholderQr().solve(rightHS);
+        Eigen::VectorXf x = leftHS.colPivHouseholderQr().solve(rightHS);
 
         std::cout << "here 1.4.3.3 " <<std::endl;
         for (int i = 0; i<mSize; i++)
@@ -2088,6 +2088,7 @@ namespace incompressible
     void dynamic::matrixSolve(int mSize,Vector<double> lhs,Vector<double> rhs,
                               double &sol)
     {
+        
         // use Eigen to solve least square dense matrix
         MatrixXf A(mSize,1);
         VectorXf b(mSize);

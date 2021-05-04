@@ -90,7 +90,7 @@ namespace incompressible
         grid_in.attach_triangulation(triangulation);
         {
             //std::string   filename = "cylinderquadcc.inp";
-            std::string   filename = "./mesh/gmsh/squarecylinder.msh";
+            std::string   filename = "./mesh/gmsh/squarecylinderc.msh";
             std::ifstream file(filename.c_str());
             Assert(file, ExcFileNotOpen(filename.c_str()));
             //grid_in.read_ucd(file);

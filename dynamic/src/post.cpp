@@ -151,7 +151,174 @@ namespace incompressible
         //std::cout << "save pt_solution " <<std::endl;
         
     }
-    
+    void Post::writemesh(Triangulation<2> &triangulation,DoFHandler<2> &dof_handler,FESystem<2> &fe,MappingQ<2> mapping, AffineConstraints<double> &nonzero_constraints)
+    {
+        using namespace std;
+        
+        std::ostringstream filenamemesh("./mesh/", ios_base::app);
+        filenamemesh<< "squarecylinder.txt";
+        
+        std::cout << filenamemesh.str() <<std::endl;
+        FILE * pFile;
+        pFile = fopen(filenamemesh.str().c_str(), "w");
+        
+        auto vertices = triangulation.get_vertices();
+        int Grid_size = triangulation.n_active_cells();
+        int edge_size = triangulation.n_faces();
+        //edge_Size  7739
+        //Grid_size 3819
+        //Node_size 3920
+        //Total_DOF 3920
+        //maxDOF 4
+        //Solution_Order
+        
+        int Total_DOF = dof_handler.n_dofs()/3;
+        fprintf(pFile,"%s %d","edge_Size ",edge_size);
+        fprintf(pFile,"\n ");
+        
+        fprintf(pFile,"%s %d","Grid_size ",Grid_size);
+        fprintf(pFile,"\n ");
+        
+        fprintf(pFile,"%s %d","Node_size ",vertices.size());
+        fprintf(pFile,"\n ");
+        
+        fprintf(pFile,"%s %d","Total_DOF ",dof_handler.n_dofs()/3);
+        fprintf(pFile,"\n ");
+        
+        fprintf(pFile,"%s %d","maxDOF ",(degree+1)*(degree+1));
+        fprintf(pFile,"\n ");
+        
+       fprintf(pFile,"%s","Solution_Order ");
+        fprintf(pFile,"\n ");
+        
+        fprintf(pFile,"%d",degree);
+        fprintf(pFile,"\n ");
+        
+        fprintf(pFile,"%s ","meshIEN ");
+        fprintf(pFile,"\n ");
+        
+        int cellnum = 0;
+        QGauss<2> quadrature_formula(degree*2);
+        FEValues<2> fe_values(mapping, fe,quadrature_formula,
+                              update_values | update_quadrature_points |
+                              update_JxW_values | update_gradients |
+                              update_inverse_jacobians);
+        const unsigned int dofs_per_cell = fe.dofs_per_cell;
+        std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
+        
+        //std::map<int,int> &vertices_to_dofs;
+        std::map<int,int> vertices_to_dofs;
+        for (const auto &cell : dof_handler.active_cell_iterators())
+        {
+            cellnum++;
+            fe_values.reinit(cell);
+            cell->get_dof_indices(local_dof_indices);
+            
+            //int vertexNum = GeometryInfo<2>::vertices_per_cell;
+            //double* coordx = new double[vertexNum];
+            //double* coordy = new double[vertexNum];
+            
+            for (unsigned int i=0; i<GeometryInfo<2>::vertices_per_cell; ++i)
+            {
+                //Point<2> &v = cell->vertex(i);
+                //coordx[i] =  v[0];
+                //coordy[i] = v[1];
+                int v_index = cell->vertex_index(i);
+                vertices_to_dofs[v_index] = cell->vertex_dof_index(i,0,0);
+                fprintf(pFile," %d ",v_index);
+            }
+            fprintf(pFile,"\n ");
+        }
+        
+        
+        fprintf(pFile,"%s ","solutionIEN ");
+        fprintf(pFile,"\n ");
+        
+        DoFHandler<2>::active_cell_iterator cell = dof_handler.begin_active();
+        DoFHandler<2>::active_cell_iterator endc = dof_handler.end();
+        
+        for (; cell!=endc; ++cell){
+            fe_values.reinit(cell);
+            cell->get_dof_indices(local_dof_indices);
+            
+            //std::cout<<"cellnum "<<cellnum-1<<" "<<dofs_per_cell<<std::endl;
+            
+            for(std::size_t i=0; i<dofs_per_cell; ++i)
+            {
+                
+                //std::cout<<local_dof_indices[i]<<std::endl;
+                fprintf(pFile,"%d ",local_dof_indices[i]);
+            }
+            fprintf(pFile,"\n ");
+        }
+        
+        fprintf(pFile,"%s ","solutionOrder ");
+        fprintf(pFile,"\n ");
+        for (unsigned long int i = 0; i<Grid_size; i++)
+        {
+                fprintf(pFile," %d %d %d %d %d",degree,degree,degree,degree,degree);
+                fprintf(pFile,"\n ");
+        }
+        
+        fprintf(pFile,"%s ","vertexCoord ");
+        fprintf(pFile,"\n ");
+        for (Triangulation<2, 2>::active_vertex_iterator v =
+             triangulation.begin_active_vertex();
+           v != triangulation.end_vertex();
+           ++v)
+        {
+          Point<2> &p = v->vertex(0);
+            //coordx[i] =  p[0];
+            //coordy[i] = p[1];
+            fprintf(pFile,"%f %f",p[0],p[1]);
+            fprintf(pFile,"\n ");
+        }
+        
+        fprintf(pFile,"%s ","bcElement ");
+        fprintf(pFile,"\n ");
+        cell = dof_handler.begin_active();
+        endc = dof_handler.end();
+               
+               for (; cell!=endc; ++cell){
+                   int element_id = cell->active_cell_index();
+                   
+                   int vertexNum = GeometryInfo<2>::vertices_per_cell;
+                   int* vertex_index = new int[vertexNum];
+                   for (unsigned int i=0; i<GeometryInfo<2>::vertices_per_cell; ++i)
+                   {
+                       int v_index = cell->vertex_index(i);
+                       vertex_index[i] = v_index;
+                   }
+                   for (unsigned int face_number=0; face_number<GeometryInfo<2>::faces_per_cell; ++face_number)
+                   {
+                       int edge_id = cell->line_index(face_number);
+                       int edge_vertex0 = cell->face(face_number)->vertex_index(0);
+                       int edge_vertex1 = cell->face(face_number)->vertex_index(1);
+                       if (cell->face(face_number)->at_boundary())
+                       {   // get cellID
+                           int cell_index = cell->active_cell_index();
+                           int bcID = cell->face(face_number)->boundary_id();
+                           fprintf(pFile,"%d %d %d ",cell_index,bcID,face_number);
+                           fprintf(pFile,"\n");
+                       }
+                   }
+               }
+        
+        fprintf(pFile,"%s","vertices_to_dofs ");
+        fprintf(pFile,"\n ");
+        int verticesSize = vertices.size();
+        for (int i = 0; i<verticesSize;i++)
+        {
+        int ui_vertex_dof = vertices_to_dofs[i];
+        int vi_vertex_dof = ui_vertex_dof+1;
+        int pi_vertex_dof = ui_vertex_dof/2+2*Total_DOF;
+         fprintf(pFile," %d %d %d",ui_vertex_dof,vi_vertex_dof,pi_vertex_dof);
+            fprintf(pFile,"\n ");
+        }
+        
+        fclose(pFile);
+    }
+
     void Post::savemesh(int cycle,DoFHandler<2> &dof_handler,FESystem<2> &fe,MappingQ<2> mapping, AffineConstraints<double> &nonzero_constraints)
     {
         

@@ -114,6 +114,7 @@ void NavierStokes::timeloop()
     //nonzero_constraints.print(std::cout);
     processResult.savemesh(cycle,dof_handler,fe,mapping, nonzero_constraints);
     
+    processResult.writemesh(triangulation,dof_handler,fe,mapping, nonzero_constraints);
     // -------- prepare dynamic mesh info---------- //
     double *cellArea;
     int Grid_size = triangulation.n_active_cells();
@@ -453,7 +454,7 @@ void NavierStokes::setup_system(double *** diffusive_k,
         
         
         //std::cout << "cc " <<cc<<std::endl;
-        /*
+        
         int vertexNum = GeometryInfo<2>::vertices_per_cell;
         double* coordx = new double[vertexNum];
         double* coordy = new double[vertexNum];
@@ -464,13 +465,36 @@ void NavierStokes::setup_system(double *** diffusive_k,
             coordx[i] =  v[0];
             coordy[i] = v[1];
         }
-        */
+        
+        cell->get_dof_indices(local_dof_indices);
+        
         /*
-        if (cellnum ==214)
+        if (cellnum ==1)
         {
             std::cout << "cellnum  "<<cellnum<<std::endl;
         std::cout << "cellnum  " << cellnum<<" n_q_points "<<n_q_points<<std::endl;
         
+            for(std::size_t i=0; i<dofs_per_cell; ++i)
+            {
+                int indexdof = local_dof_indices[i];
+                //std::cout<<local_dof_indices[i]<<std::endl;
+                //npaf_solution[indexdof]
+                std::cout<<npaf_solution[indexdof]<<std::endl;
+                //fprintf(pFile,"%d ",local_dof_indices[i]);
+                //fprintf(pFile,"\n ");
+            }
+            
+            std::cout << "vt  " <<std::endl;
+            for(std::size_t i=0; i<dofs_per_cell; ++i)
+            {
+                int indexdof = local_dof_indices[i];
+                //std::cout<<local_dof_indices[i]<<std::endl;
+                //npaf_solution[indexdof]
+                std::cout<<npam_solution_time_derivative[indexdof]<<std::endl;
+                //fprintf(pFile,"%d ",local_dof_indices[i]);
+                //fprintf(pFile,"\n ");
+            }
+            
         std::cout << "coordinate  " << coordx[0]<<" "<< coordx[1]<<" "<< coordx[2]<<" "<< coordx[3]<<std::endl;
         std::cout << "coordinate  " << coordy[0]<<" "<< coordy[1]<<" "<< coordy[2]<<" "<< coordy[3]<<std::endl;
         }
@@ -500,10 +524,24 @@ void NavierStokes::setup_system(double *** diffusive_k,
                  -present_velocity_gradients[q]*velocitybar[q];
              
             /*
-            if (cellnum <=1)
+            if (cellnum ==1)
             {
-                std::cout << "cellnum  "<<cellnum<<std::endl;
-            //std::cout << "present_vt_values  " << present_vt_values[q]<<" present_velocity_values "<< present_velocity_values[q]<<" present_velocity_gradients "<< present_velocity_gradients[q]<<"present_pressure_values  "<< present_pressure_values[q]<<std::endl;
+                std::vector<Point<2> > quad_points_list(n_q_points);
+                quad_points_list = fe_values.get_quadrature_points();
+                std::cout << "q  "<<q<<" quad_points_list "<<quad_points_list[q]<<std::endl;
+                std::cout <<" u "<< present_velocity_values[q]<<std::endl;
+                std::cout<<"p  "<< present_pressure_values[q]<<std::endl;
+                std::cout << "ut  " << present_vt_values[q]<<std::endl;
+                std::cout <<   " vgrad "<< present_velocity_gradients[q]<<std::endl;
+             
+                const DerivativeForm<1, 2, 2> &JacobiInverse = fe_values.inverse_jacobian(q);
+                
+                double Jp11 = JacobiInverse[0][0];
+                double Jp12 = JacobiInverse[0][1];
+                double Jp21 = JacobiInverse[1][0];
+                double Jp22 = JacobiInverse[1][1];
+              
+                std::cout << "Jinverse  " << Jp11<<" "<< Jp12<<" "<< Jp21<<" "<< Jp22<<std::endl;
             std::cout << "gij  " << 4*gij[0]<<" "<< 4*gij[1]<<" "<< 4*gij[2]<<" "<< 4*gij[3]<<std::endl;
             std::cout << "rm  " << rm[q]<<" rc "<< rc<<" tauM "<< tauM<<" tauC "<< tauC<<std::endl;
             std::cout << "velocitybar  " << velocitybar[q]<<" Jx "<< Jx<<std::endl;
@@ -541,15 +579,16 @@ void NavierStokes::setup_system(double *** diffusive_k,
                 lhs5[k] = tauM*grad_phi_p[k];
                 
                 /*
-                if (cellnum ==214)
+                if (cellnum ==1)
                 {
-                    std::cout << "cellnum  "<<cellnum<<std::endl;
-                std::cout << "div_phi_u  " << div_phi_u[k]<<" grad_phi_u "<< grad_phi_u[k]<<" phi_u "<< phi_u[k]<<"phi_p  "<< phi_p[k]<<std::endl;
-                std::cout << "grad_phi_p  " << grad_phi_p[k]<<std::endl;
-                std::cout << "lhs1  " << lhs1[k]<<" lhs2 "<< lhs2[k]<<" lhs3 "<< lhs3[k]<<" lhs4 "<< lhs4[k]<<std::endl;
-                std::cout << "lhs5  " << lhs5[k]<<std::endl;
+                    std::cout << "k  "<<k<<std::endl;
+                //std::cout << "div_phi_u  " << div_phi_u[k]<<" grad_phi_u "<< grad_phi_u[k]<<
+                    std::cout <<" phi_u "<< phi_u[k]<<std::endl;
+                //std::cout << "grad_phi_p  " << grad_phi_p[k]<<std::endl;
+                //std::cout << "lhs1  " << lhs1[k]<<" lhs2 "<< lhs2[k]<<" lhs3 "<< lhs3[k]<<" lhs4 "<< lhs4[k]<<std::endl;
+                //std::cout << "lhs5  " << lhs5[k]<<std::endl;
                 }
-                 */
+                */
             }
             // i ,j loop
             for (unsigned int i=0; i<dofs_per_cell; ++i)
@@ -621,7 +660,7 @@ void NavierStokes::setup_system(double *** diffusive_k,
          }        
         }
         */
-        cell->get_dof_indices(local_dof_indices);
+        
         
         //nonzero_constraints.clear();
         const AffineConstraints<double> &constraints_used = zero_constraints;
