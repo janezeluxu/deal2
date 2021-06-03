@@ -50,29 +50,17 @@ public:
     void postprocess();
     
     void setDof();
-    void initialize(double*** &diffusive_k,double*** &div_SF_u,
-                    double**** &grad_SF_u,double**** &SF_u,
-                    double*** &SF_p,double**** &grad_SF_p,
-                    double*** &gijG);
-    void pre_compute(double *** &diffusive_k,
-    double*** &div_SF_u,double**** &grad_SF_u,
-    double**** &SF_u, double*** &SF_p,double**** &grad_SF_p,
-                     double*** &gijG);
+    void initialize(double*** &diffusive_k);
+    void pre_compute(double *** &diffusive_k);
     void getGij(const DerivativeForm<1, 2, 2> &JacobiInverse, double* &gij);
     void startingTimeloop(int num_start);
     void applyBC(double t);
     void predictor();
-    void corrector(double *** &diffusive_k,
-    double*** &div_SF_u,double**** &grad_SF_u,
-    double**** &SF_u, double*** &SF_p,
-    double**** &grad_SF_p,double*** &gijG,double *taumEle);
+    void corrector(double *** &diffusive_k,double *taumEle);
     void updator();
     void output_results () const;
     void iterPC();
-    void setup_system(double *** diffusive_k,
-    double*** &div_SF_u,double**** &grad_SF_u,
-    double**** &SF_u, double*** &SF_p,
-    double**** &grad_SF_p,double*** &gijG,double *taumEle);
+    void setup_system(double *** diffusive_k,double *taumEle);
     void getTaum(double tau_dyn, double* gij,double dt,
                  double uele,double vele,
                  double &tauM, double &tauC);

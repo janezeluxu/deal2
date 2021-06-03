@@ -150,8 +150,7 @@ namespace incompressible
          */
     }
     
-    void dynamic::getTave(int Grid_size, double*** &gijG,
-                          BlockVector<double> &n_solution, double *Tave)
+    void dynamic::getTave(int Grid_size, BlockVector<double> &n_solution, double *Tave)
     {
         for (int i = 0; i<Grid_size; i++)
         {

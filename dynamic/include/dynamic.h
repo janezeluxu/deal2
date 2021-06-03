@@ -15,8 +15,7 @@ public:
             Triangulation<2> &triangulation);
     void getInitialtau(int Grid_size,double vmax,double *cellArea, std::vector<std::vector<DoFHandler<2>::
     active_cell_iterator> > &v_to_e_list, BlockVector<double> &n_solution, double *taumELE, double **taum);
-    void getTave(int Grid_size,double*** &gijG,
-                 BlockVector<double> &n_solution, double *Tave);
+    void getTave(int Grid_size, BlockVector<double> &n_solution, double *Tave);
     void relxation_ele(int Grid_size, double **taum_g,double *Tave,double **taum, double *taumEle);
     void getBCinfo(std::vector<int> &IBC, double *bcTag);
     void additionalDynamicinfo(std::vector<std::vector<DoFHandler<2>::

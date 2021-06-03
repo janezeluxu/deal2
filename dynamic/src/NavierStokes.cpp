@@ -95,15 +95,9 @@ void NavierStokes::timeloop()
     
     int ele_num = triangulation.n_active_cells();
     double*** diffusive_k = new double**[ele_num];
-    double*** div_SF_u = new double**[ele_num];
-    double**** grad_SF_u = new double***[ele_num];
-    double**** SF_u = new double***[ele_num];
-    double*** SF_p = new double**[ele_num];
-    double**** grad_SF_p = new double***[ele_num];
-    double*** gijG = new double**[ele_num];
     
-    initialize(diffusive_k,div_SF_u,grad_SF_u,SF_u,SF_p,grad_SF_p,gijG);
-    pre_compute(diffusive_k,div_SF_u,grad_SF_u,SF_u,SF_p,grad_SF_p,gijG);
+    initialize(diffusive_k);
+    pre_compute(diffusive_k);
     
     startingTimeloop(num_start);
     Post processResult(degree);
@@ -113,8 +107,6 @@ void NavierStokes::timeloop()
     //std::cout << "nonzero_constraints lines "<<std::endl;
     //nonzero_constraints.print(std::cout);
     processResult.savemesh(cycle,dof_handler,fe,mapping, nonzero_constraints);
-    
-    processResult.writemesh(triangulation,dof_handler,fe,mapping, nonzero_constraints);
     // -------- prepare dynamic mesh info---------- //
     double *cellArea;
     int Grid_size = triangulation.n_active_cells();
@@ -180,7 +172,7 @@ void NavierStokes::timeloop()
     std::cout << "initialize taum "<<std::endl;
     double vmax = 1.0;
     tauSystem.getInitialtau(Grid_size, vmax,cellArea,v_to_e_list,n_solution,taumEle, taum);
-    tauSystem.getTave(Grid_size,gijG,n_solution,Tave);
+    tauSystem.getTave(Grid_size,n_solution,Tave);
     /*
     for (int i = 0; i<Grid_size; i++)
     {
@@ -201,7 +193,7 @@ void NavierStokes::timeloop()
         predictor();
         //processResult.savetovtk(dof_handler,np1_solution,2000);
         //Newton's iteration
-        corrector(diffusive_k,div_SF_u,grad_SF_u,SF_u,SF_p,grad_SF_p,gijG,taumEle);
+        corrector(diffusive_k,taumEle);
 
         //processResult.savetovtk(dof_handler,n_solution,3000);
         
@@ -216,7 +208,7 @@ void NavierStokes::timeloop()
             if (istp+1 % 10 == 0)
             {
                 std::cout << "-------get Tave-------" << std::endl;
-                tauSystem.getTave(Grid_size,gijG,n_solution,Tave);
+                tauSystem.getTave(Grid_size,n_solution,Tave);
             }
             
             tauSystem.getc1c2(n_solution,n_solution_time_derivative,
@@ -272,11 +264,7 @@ void NavierStokes::predictor()
     
 }
 
-void NavierStokes::corrector(double *** &diffusive_k,
-                                double*** &div_SF_u,double**** &grad_SF_u,
-                                double**** &SF_u, double*** &SF_p,
-                                double**** &grad_SF_p,double*** &gijG,
-                                double *taumEle)
+void NavierStokes::corrector(double *** &diffusive_k,double *taumEle)
 {
     /*
      newtons loop with a very easy line search algorithm
@@ -295,7 +283,7 @@ void NavierStokes::corrector(double *** &diffusive_k,
         iterPC();
         //std::cout << "----get newton update ----" << std::endl;
         
-        setup_system(diffusive_k,div_SF_u,grad_SF_u,SF_u,SF_p,grad_SF_p,gijG,taumEle);
+        setup_system(diffusive_k,taumEle);
         linear_solve(newton_update);
         
         //Post processResult(degree);
@@ -332,11 +320,7 @@ void NavierStokes::iterPC()
 
 }
 
-void NavierStokes::setup_system(double *** diffusive_k,
-                               double*** &div_SF_u,double**** &grad_SF_u,
-                               double**** &SF_u, double*** &SF_p,
-                               double**** &grad_SF_p,double*** &gijG,
-                               double *taumEle)
+void NavierStokes::setup_system(double *** diffusive_k,double *taumEle)
 {
     
     //int dim = 2;
@@ -467,46 +451,10 @@ void NavierStokes::setup_system(double *** diffusive_k,
         }
         
         cell->get_dof_indices(local_dof_indices);
-        
-        /*
-        if (cellnum ==1)
-        {
-            std::cout << "cellnum  "<<cellnum<<std::endl;
-        std::cout << "cellnum  " << cellnum<<" n_q_points "<<n_q_points<<std::endl;
-        
-            for(std::size_t i=0; i<dofs_per_cell; ++i)
-            {
-                int indexdof = local_dof_indices[i];
-                //std::cout<<local_dof_indices[i]<<std::endl;
-                //npaf_solution[indexdof]
-                std::cout<<npaf_solution[indexdof]<<std::endl;
-                //fprintf(pFile,"%d ",local_dof_indices[i]);
-                //fprintf(pFile,"\n ");
-            }
-            
-            std::cout << "vt  " <<std::endl;
-            for(std::size_t i=0; i<dofs_per_cell; ++i)
-            {
-                int indexdof = local_dof_indices[i];
-                //std::cout<<local_dof_indices[i]<<std::endl;
-                //npaf_solution[indexdof]
-                std::cout<<npam_solution_time_derivative[indexdof]<<std::endl;
-                //fprintf(pFile,"%d ",local_dof_indices[i]);
-                //fprintf(pFile,"\n ");
-            }
-            
-        std::cout << "coordinate  " << coordx[0]<<" "<< coordx[1]<<" "<< coordx[2]<<" "<< coordx[3]<<std::endl;
-        std::cout << "coordinate  " << coordy[0]<<" "<< coordy[1]<<" "<< coordy[2]<<" "<< coordy[3]<<std::endl;
-        }
-        */
+
         // loop through intergral points
         for (unsigned int q=0; q<n_q_points; ++q)
         {
-            //gij[0] = gijG[cellnum-1][q][0];
-            //gij[1] = gijG[cellnum-1][q][1];
-            //gij[2] = gijG[cellnum-1][q][2];
-            //gij[3] = gijG[cellnum-1][q][3];
-            
             getGij(fe_values.inverse_jacobian(q),gij);
             rm[q] = present_vt_values[q] +
             present_velocity_gradients[q]*present_velocity_values[q]+present_pressure_gradients[q];//-sourceTerm[q];
@@ -551,18 +499,6 @@ void NavierStokes::setup_system(double *** diffusive_k,
             // shape functions
             for (unsigned int k=0; k<dofs_per_cell; ++k)
             {
-                
-                //div_phi_u[k]  = div_SF_u[cellnum-1][q][k];
-                //grad_phi_u[k][0][0] = grad_SF_u[cellnum-1][q][k][0];
-                //grad_phi_u[k][0][1] = grad_SF_u[cellnum-1][q][k][1];
-                //grad_phi_u[k][1][0] = grad_SF_u[cellnum-1][q][k][2];
-                //grad_phi_u[k][1][1] = grad_SF_u[cellnum-1][q][k][3];
-                
-                //phi_u[k][0] = SF_u[cellnum-1][q][k][0];
-                //phi_u[k][1] = SF_u[cellnum-1][q][k][1];
-                //phi_p[k]  = SF_p[cellnum-1][q][k];
-                //grad_phi_p[k][0] =grad_SF_p[cellnum-1][q][k][0];
-                //grad_phi_p[k][1] =grad_SF_p[cellnum-1][q][k][1];
                 
                 div_phi_u[k]  =  fe_values[velocities].divergence (k, q);
                 grad_phi_u[k] =  fe_values[velocities].gradient(k, q);
@@ -726,14 +662,6 @@ void NavierStokes::getTaum(double tau_dyn, double* gij,double dt, double uele,do
         tauC = (1)/(3*tauMtilta*(gij0+gij3));
     else
         tauC=0;
-    
-    //double tauM =0;
-    //std::cout << "degree  " << degree<<std::endl;
-    //std::cout << "A11  " << A11<<" A22 "<<A22<<std::endl;
-    //std::cout << "viscosity  " << viscosity<< " tau1sqinv  " << tau1sqinv<<std::endl;
-    //std::cout << "tau2sqinv  " << tau2sqinv<<std::endl;
-    //std::cout << "tauMtilta  " << tauMtilta<<std::endl;
-    //std::cout << "gij0  " << gij0<<" gij3"<<gij3<<std::endl;
 }
 void NavierStokes::linear_solve(BlockVector<double> &newton_update)
 {
@@ -812,10 +740,7 @@ void NavierStokes::getGij(const DerivativeForm<1, 2, 2> &JacobiInverse, double* 
     gij[3] =(Jp12)*(Jp12)+(Jp22)*(Jp22);
     //std::cout << " j "<<gij[0] <<" "<<gij[1] <<" "<< gij[2] <<" "<<gij[3] << '\n';
 }
-void NavierStokes:: pre_compute(double *** &diffusive_k,
-                    double*** &div_SF_u,double**** &grad_SF_u,
-                    double**** &SF_u, double*** &SF_p,double**** &grad_SF_p,
-                                   double*** &gijG)
+void NavierStokes:: pre_compute(double *** &diffusive_k)
 {
     
     //int cellnum = 0;
@@ -854,10 +779,6 @@ void NavierStokes:: pre_compute(double *** &diffusive_k,
         for (unsigned int q=0; q<n_q_points; ++q)
         {
             getGij(fe_values.inverse_jacobian(q),gij);
-            gijG[cellnum][q][0]=gij[0];
-            gijG[cellnum][q][1]=gij[1];
-            gijG[cellnum][q][2]=gij[2];
-            gijG[cellnum][q][3]=gij[3];
             
             for (unsigned int k=0; k<dofs_per_cell; ++k)
             {
@@ -867,21 +788,7 @@ void NavierStokes:: pre_compute(double *** &diffusive_k,
                 phi_u[k]      =  fe_values[velocities].value(k, q);
                 phi_p[k]      =  fe_values[pressure].value(k, q);
                 grad_phi_p[k] =  fe_values[pressure].gradient(k, q);
-                
-                div_SF_u[cellnum][q][k] = fe_values[velocities].divergence (k, q);
-                grad_SF_u[cellnum][q][k][0] =grad_phi_u[k][0][0];
-                grad_SF_u[cellnum][q][k][1] =grad_phi_u[k][0][1];
-                grad_SF_u[cellnum][q][k][2] =grad_phi_u[k][1][0];
-                grad_SF_u[cellnum][q][k][3] =grad_phi_u[k][1][1];
-                
-                SF_u[cellnum][q][k][0] = phi_u[k][0];
-                SF_u[cellnum][q][k][1] = phi_u[k][1];
-                
-                SF_p[cellnum][q][k] = fe_values[pressure].value(k, q);
-                grad_SF_p[cellnum][q][k][0] = grad_phi_p[k][0];
-                grad_SF_p[cellnum][q][k][1] = grad_phi_p[k][1];
-                //div_phi_u[k];
-                //std::cout<<"grad_SF_u "<<div_SF_u[cellnum][q][k]<<std::endl;
+
             }
             
             for (unsigned int i=0; i<dofs_per_cell; ++i)
@@ -923,16 +830,8 @@ void NavierStokes:: pre_compute(double *** &diffusive_k,
     
 }
 
-    void NavierStokes::initialize(double*** &diffusive_k,double*** &div_SF_u,
-                                  double**** &grad_SF_u,double**** &SF_u,
-                                  double*** &SF_p,double**** &grad_SF_p,
-                                  double*** &gijG)
+    void NavierStokes::initialize(double*** &diffusive_k)
     {
-        
-        //n_solution.reinit(dofs_per_block);
-        //n_solution_time_derivative.reinit(dofs_per_block);
-        //np1_solution.reinit(dofs_per_block);
-        //np1_solution_time_derivative.reinit(dofs_per_block);
         
         QGauss<2> quadrature_formula(degree*2);
         const unsigned int dofs_per_cell = fe.dofs_per_cell;
@@ -960,76 +859,6 @@ void NavierStokes:: pre_compute(double *** &diffusive_k,
             }
             
         }
-        
-        int EleNum = ele_num;
-        for( int i=0; i<EleNum; i++)
-        {
-            div_SF_u[i] = new double*[n_q_points];
-            for (unsigned int j = 0; j<n_q_points; j++)
-            {
-                div_SF_u[i][j] = new double[dofs_per_cell];
-            }
-        }
-        
-        for( int i=0; i<EleNum; i++)
-        {
-            grad_SF_u[i] = new double**[n_q_points];
-            for (unsigned int j = 0; j<n_q_points; j++)
-            {
-                grad_SF_u[i][j] = new double*[dofs_per_cell];
-                for (unsigned int k = 0; k<dofs_per_cell; k++)
-                {
-                    grad_SF_u[i][j][k] = new double[4];
-                }
-            }
-        }
-        
-        for( int i=0; i<EleNum; i++)
-        {
-            SF_u[i] = new double**[n_q_points];
-            for (unsigned int j = 0; j<n_q_points; j++)
-            {
-                SF_u[i][j] = new double*[dofs_per_cell];
-                for (unsigned int k = 0; k<dofs_per_cell; k++)
-                {
-                    SF_u[i][j][k] = new double[2];
-                }
-            }
-        }
-        
-        for( int i=0; i<EleNum; i++)
-        {
-            SF_p[i] = new double*[n_q_points];
-            for (unsigned int j = 0; j<n_q_points; j++)
-            {
-                SF_p[i][j] = new double[dofs_per_cell];
-            }
-        }
-        
-        for( int i=0; i<EleNum; i++)
-        {
-            grad_SF_p[i] = new double**[n_q_points];
-            for (unsigned int j = 0; j<n_q_points; j++)
-            {
-                grad_SF_p[i][j] = new double*[dofs_per_cell];
-                for (unsigned int k = 0; k<dofs_per_cell; k++)
-                {
-                    grad_SF_p[i][j][k] = new double[2];
-                }
-            }
-        }
-        
-        
-        for( int i=0; i<EleNum; i++)
-        {
-            gijG[i] = new double*[n_q_points];
-            for (unsigned int j = 0; j<n_q_points; j++)
-            {
-                gijG[i][j] = new double[4];
-            }
-        }
-
-        
     }
     
     void NavierStokes::applyBC(double t)
