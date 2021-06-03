@@ -554,10 +554,10 @@ void NavierStokes::setup_system(double *** diffusive_k,double *taumEle)
                         alpham*phi_u[j]*phi_u[i]*Jx // time
                         +viscosity*scalar_product(grad_phi_u[j], grad_phi_u[i])*cJx
                         - (div_phi_u[i]*phi_p[j] - phi_p[i]*div_phi_u[j])*cJx
-                        +(lhs1[j]*phi_u[i] //convection
-                        +lhs3[j]*lhs2[i] // stabilization
-                        +lhs4[j]*div_phi_u[i]
-                        +lhs5[j]*grad_phi_p[i]
+                        +(grad_phi_u[j]*velocitybar[q]*phi_u[i] //convection
+                        +tauM*(grad_phi_u[j]*present_velocity_values[q])*(grad_phi_u[i]*present_velocity_values[q]) // stabilization
+                        +tauC*div_phi_u[j]*div_phi_u[i]
+                        +tauM*grad_phi_p[j]*grad_phi_p[i]
                           )
                         *cJx;
                         */
